@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: docflow_app
+    container_name: docflow-app
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -14,7 +14,7 @@ services:
 
   web:
     image: nginx:alpine
-    container_name: docflow_web
+    container_name: docflow-web
     restart: unless-stopped
     ports:
       - "8000:80"
@@ -26,7 +26,7 @@ services:
 
   db:
     image: postgres:15-alpine
-    container_name: docflow_db
+    container_name: docflow-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: docflow
@@ -39,7 +39,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: docflow_redis
+    container_name: docflow-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
