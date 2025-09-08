@@ -1,5 +1,5 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3'
+import {Link, usePage} from '@inertiajs/vue3'
 
 const page = usePage()
 const user = page.props.auth.user
@@ -15,7 +15,9 @@ const user = page.props.auth.user
                     </div>
                     <div class="flex items-center space-x-4">
                         <span class="text-sm text-gray-700">Witaj, {{ user.name }} ({{ user.roles.join(', ') }})</span>
-                        <Link href="/logout" method="post" as="button" class="text-sm text-red-600 hover:text-red-800">Wyloguj</Link>
+                        <Link href="/logout" method="post" as="button" class="text-sm text-red-600 hover:text-red-800">
+                            Wyloguj
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -25,7 +27,7 @@ const user = page.props.auth.user
             <div v-if="$page.props.flash.message" class="mb-4 p-4 text-green-700 bg-green-100 rounded-md">
                 {{ $page.props.flash.message }}
             </div>
-            <slot />
+            <slot/>
         </main>
     </div>
 </template>

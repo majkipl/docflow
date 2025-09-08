@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Link } from '@inertiajs/vue3'
+import {Link} from '@inertiajs/vue3'
 
 defineProps({
     documents: Object,
@@ -14,7 +14,8 @@ defineProps({
             <h1 class="text-2xl font-semibold text-gray-900">
                 {{ viewType === 'manager' ? 'Dokumenty oczekujące na akceptację' : 'Moje Dokumenty' }}
             </h1>
-            <Link v-if="viewType === 'employee'" href="/documents/create" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <Link v-if="viewType === 'employee'" href="/documents/create"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                 + Wgraj Nowy Dokument
             </Link>
         </div>
