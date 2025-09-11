@@ -24,3 +24,8 @@
 * **BPMN & State Machine:** Czysta implementacja wzorca projektowego *State*. Każdy status dokumentu (`draft`, `pending`, `approved`, `rejected`) to osobna klasa z hermetyzowanymi regułami przejść. Zintegrowane z Eloquent przy użyciu mechanizmu *Custom Casts*.
 * **Repository Pattern:** Abstrakcja bazy danych (`DocumentRepositoryInterface`), ułatwiająca testowanie (mockowanie) oraz zmiany silnika bazodanowego.
 * **Audit Log:** Event-Driven Architecture gwarantuje automatyczny zapis każdego przejścia w cyklu życia dokumentu (Event `DocumentStateChanged`).
+
+## Architektura UI (Frontend)
+* **Stack:** Vue 3 (Composition API), Tailwind CSS.
+* **Integracja:** Inertia.js (Nowoczesny Monolit) pozwala na korzystanie z Vue bez tworzenia oddzielnego API, renderując komponenty z poziomu kontrolerów Laravela.
+* **Wzorce:** Komponenty podzielone na warstwy (Layout, Pages). Dynamiczne renderowanie akcji (przyciski Workflow) jest ściśle sprzężone z wyliczonymi uprawnieniami (RBAC) przekazywanymi przez klasę `HandleInertiaRequests`.
