@@ -29,3 +29,12 @@
 * **Stack:** Vue 3 (Composition API), Tailwind CSS.
 * **Integracja:** Inertia.js (Nowoczesny Monolit) pozwala na korzystanie z Vue bez tworzenia oddzielnego API, renderując komponenty z poziomu kontrolerów Laravela.
 * **Wzorce:** Komponenty podzielone na warstwy (Layout, Pages). Dynamiczne renderowanie akcji (przyciski Workflow) jest ściśle sprzężone z wyliczonymi uprawnieniami (RBAC) przekazywanymi przez klasę `HandleInertiaRequests`.
+
+## Asynchroniczność i API
+* **Kolejkowanie (Redis):** Integracja z Redis pozwala na tło obsługi zadań powiadomień. Przy zmianie stanu dokumentu, Job `SendDocumentStatusNotification` jest asynchronicznie przesyłany do workera.
+* **REST API:** Zewnętrzne systemy (np. OCR lub zewnętrzne ERP) mogą załączać nowe dokumenty przy użyciu endpointu `POST /api/documents` chronionego przez *Laravel Sanctum*. Architektura oparta o interfejsy gwarantuje, że kontroler API współdzieli repozytoria i serwisy uploaderów z aplikacją webową bez duplikacji logiki biznesowej.
+
+**Uruchomienie Workera Kolejek (Lokalnie):**
+```bash
+docker-compose exec app php artisan queue:work
+```
