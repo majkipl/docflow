@@ -10,7 +10,7 @@ class DocumentAuditLog extends Model
     protected $fillable = ['document_id', 'user_id', 'old_state', 'new_state'];
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -18,7 +18,7 @@ class DocumentAuditLog extends Model
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo<Document, $this>
      */
     public function document(): BelongsTo
     {

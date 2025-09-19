@@ -12,17 +12,20 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
+/**
+ * @implements CastsAttributes<DocumentState, DocumentState|string>
+ */
 class StateCast implements CastsAttributes
 {
     /**
      * Cast the given value.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): DocumentState
     {
         // Type guard - zapewniamy statyczną poprawność typów
-        if (! $model instanceof Document) {
+        if (!$model instanceof Document) {
             throw new InvalidArgumentException('StateCast can only be used with the Document model.');
         }
 
@@ -38,10 +41,20 @@ class StateCast implements CastsAttributes
     /**
      * Prepare the given value for storage.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string
     {
-        return $value instanceof DocumentState ? $value->getName() : $value;
+        // Jeśli przypisujemy gotowy obiekt stanu
+        if ($value instanceof DocumentState) {
+            return $value->getName();
+        }
+
+        // Jeśli przypisujemy stan jako zwykły tekst, upewniamy się, że to faktycznie string
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('State value must be a string or instance of DocumentState.');
+        }
+
+        return $value;
     }
 }

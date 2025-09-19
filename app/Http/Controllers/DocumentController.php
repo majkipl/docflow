@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\User;
 use App\Repositories\DocumentRepositoryInterface;
 use App\Services\Auth\RoleVerificationService;
 use App\Services\Upload\FileUploaderInterface;
@@ -19,8 +20,10 @@ class DocumentController extends Controller
      */
     public function __construct(
         private DocumentRepositoryInterface $repository,
-        private RoleVerificationService $roleService
-    ) {}
+        private RoleVerificationService     $roleService
+    )
+    {
+    }
 
     /**
      * @param Request $request
@@ -28,6 +31,7 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var User $user */
         $user = $request->user();
 
         // Polimorficzny Dashboard na podstawie roli
@@ -67,9 +71,11 @@ class DocumentController extends Controller
 
         $path = $uploader->upload($request->file('file'), 'documents');
 
+        /** @var User $user */
+        $user = $request->user();
+
         $this->repository->create([
-            'user_id' => $request->user()->id,
-            'title' => $request->title,
+            'user_id' => $user->id, 'title' => $request->title,
             'file_path' => $path,
             'state' => 'draft',
         ]);

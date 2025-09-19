@@ -10,7 +10,7 @@ class RoleVerificationService
      * Sprawdza, czy użytkownik posiada przynajmniej jedną z wymaganych ról.
      *
      * @param User $user
-     * @param array $roles
+     * @param array<int, string> $roles
      * @return bool
      */
     public function hasAnyRole(User $user, array $roles): bool

@@ -8,19 +8,19 @@ use Illuminate\Pagination\LengthAwarePaginator;
 interface DocumentRepositoryInterface
 {
     /**
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Document
      */
     public function create(array $data): Document;
 
     /**
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<int, Document>
      */
     public function getPendingForManager(): LengthAwarePaginator;
 
     /**
      * @param int $userId
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<int, Document>
      */
     public function getForEmployee(int $userId): LengthAwarePaginator;
 

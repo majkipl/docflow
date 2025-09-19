@@ -1,0 +1,13 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    # Poziom analizy od 0 (najluźniejszy) do 9 (najbardziej rygorystyczny)
+    level: 8
+
+    # Opcjonalnie ignorowanie konkretnych błędów
+    ignoreErrors:
+        # - '#Unsafe usage of new static.*#'

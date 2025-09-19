@@ -10,7 +10,7 @@ class Role extends Model
     protected $fillable = ['name', 'description'];
 
     /**
-     * @return BelongsToMany
+     * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany
     {

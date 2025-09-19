@@ -52,11 +52,16 @@ abstract class DocumentState
      */
     protected function transitionTo(string $newState): void
     {
-        $oldState = $this->document->state->getName();
+        /** @var DocumentState $state */
+        $state = $this->document->state;
+        $oldState = $state->getName();
+
         $this->document->setAttribute('state', $newState);
         $this->document->save();
 
-        // Wypuszczenie eventu dla Audit Loga (Zrealizowane w kroku 17)
-        event(new DocumentStateChanged($this->document, $oldState, $newState, auth()->id()));
+        $userId = auth()->id();
+        $eventUserId = $userId !== null ? (int) $userId : null;
+
+        event(new DocumentStateChanged($this->document, $oldState, $newState, $eventUserId));
     }
 }

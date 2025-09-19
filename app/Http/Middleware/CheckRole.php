@@ -24,7 +24,8 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user() || !$this->roleVerificationService->hasAnyRole($request->user(), $roles)) {
+        // Użycie array_values normalizuje klucze wymuszając typ array<int, string>
+        if (!$request->user() || !$this->roleVerificationService->hasAnyRole($request->user(), array_values($roles))) {
             abort(403, 'Brak wymaganych uprawnień (RBAC).');
         }
 

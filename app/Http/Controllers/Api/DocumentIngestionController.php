@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Repositories\DocumentRepositoryInterface;
 use App\Services\Upload\FileUploaderInterface;
 use Exception;
@@ -26,11 +27,14 @@ class DocumentIngestionController extends Controller
             'file' => 'required|file|max:20480', // np. 20MB dla systemów zewnętrznych
         ]);
 
+        /** @var User $user */
+        $user = $request->user();
+
         try {
             $path = $this->uploader->upload($request->file('file'), 'api_documents');
 
             $document = $this->repository->create([
-                'user_id' => $request->user()->id,
+                'user_id' => $user->id,
                 'title' => $request->title,
                 'file_path' => $path,
                 'state' => 'draft', // Domyślnie startujemy od Draft

@@ -13,6 +13,12 @@ class LocalFileUploader implements FileUploaderInterface
      */
     public function upload(UploadedFile $file, string $directory): string
     {
-        return $file->store($directory, 'local');
+        $path = $file->store($directory, 'local');
+
+        if ($path === false) {
+            throw new \RuntimeException('Nie udało się zapisać pliku.');
+        }
+
+        return $path;
     }
 }

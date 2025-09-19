@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\DocumentStatusChangedMail;
 use App\Models\Document;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -37,8 +38,12 @@ class SendDocumentStatusNotification implements ShouldQueue
     {
         // Wysłanie maila do autora dokumentu.
         // W pełnej wersji biznesowej powiadomienia mogłyby trafiać też do managerów (gdy status = pending).
-        if ($this->document->user) {
-            Mail::to($this->document->user->email)->send(
+
+        /** @var User|null $user */
+        $user = $this->document->user;
+
+        if ($user && $user->email) {
+            Mail::to($user->email)->send(
                 new DocumentStatusChangedMail($this->document, $this->oldState, $this->newState)
             );
         }

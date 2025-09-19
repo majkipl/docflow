@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use App\Casts\StateCast;
+use App\Domain\States\DocumentState;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property DocumentState $state
+ */
 class Document extends Model
 {
     protected $fillable = ['user_id', 'title', 'file_path', 'state'];
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -19,7 +23,7 @@ class Document extends Model
     }
 
     /**
-     * @return \class-string[]
+     * @return array<string, string|class-string>
      */
     protected function casts(): array
     {

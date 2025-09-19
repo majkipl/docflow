@@ -8,7 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class EloquentDocumentRepository implements DocumentRepositoryInterface
 {
     /**
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return Document
      */
     public function create(array $data): Document
@@ -17,7 +17,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     }
 
     /**
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<int, Document>
      */
     public function getPendingForManager(): LengthAwarePaginator
     {
@@ -26,7 +26,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
 
     /**
      * @param int $userId
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<int, Document>
      */
     public function getForEmployee(int $userId): LengthAwarePaginator
     {
