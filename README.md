@@ -1,40 +1,62 @@
 # DocFlow - Business Process & Document Approval System
 
-## Wymagania
-* Docker & Docker Compose
-* Node.js (opcjonalnie do dewelopmentu lokalnego poza kontenerem)
+DocFlow to nowoczesna aplikacja webowa typu monolit (Laravel + Vue 3 + Inertia.js), służąca do elektronicznego obiegu dokumentów (EOD). System został zaprojektowany z myślą o skalowalności i architekturze zorientowanej na domeny (DDD), z rygorystycznym przestrzeganiem zasad SOLID.
 
-## Setup (Instalacja)
-1. Klonowanie repozytorium
-2. `cp .env.example .env` (upewnij się, że używasz bazy `pgsql` i kolejki `redis`)
-3. `docker-compose up -d --build`
-4. Wewnątrz kontenera aplikacji (`docker-compose exec app bash`):
-    * `composer install`
-    * `php artisan key:generate`
-    * `php artisan migrate --seed` (zainicjuje tabele i doda użytkowników testowych)
-    * `npm install && npm run build` (w celu kompilacji Vue+Tailwind)
+## ⚙️ Wymagania
+- Docker & Docker Compose
+- PHP 8.2+ (do lokalnego testowania, opcjonalnie)
+- Node.js (do modyfikacji frontendu poza kontenerem)
 
-## Logowanie testowe (Hasło: `password`)
-* admin@docflow.local
-* manager@docflow.local
-* employee@docflow.local
+## 🚀 Szybki start (Środowisko Docker)
+1. Klonowanie repozytorium: `git clone <url> && cd docflow`
+2. Przygotowanie konfiguracji: `cp .env.example .env` (upewnij się, że używasz połączeń z Dockera: `DB_HOST=db`, `REDIS_HOST=redis`).
+3. Uruchomienie kontenerów: `docker-compose up -d --build`
+4. Inicjalizacja aplikacji (wewnątrz kontenera):
+   ```bash
+   docker-compose exec app bash
+   composer install
+   php artisan key:generate
+   php artisan migrate --seed
+   npm install && npm run build
+   ```
+5. Aplikacja jest dostępna pod adresem: `http://localhost:8000`
 
-## Architektura
-* **RBAC:** Skastomizowany moduł ról wykorzystujący `RoleVerificationService` (zgodne z SRP i DIP).
-* **BPMN & State Machine:** Czysta implementacja wzorca projektowego *State*. Każdy status dokumentu (`draft`, `pending`, `approved`, `rejected`) to osobna klasa z hermetyzowanymi regułami przejść. Zintegrowane z Eloquent przy użyciu mechanizmu *Custom Casts*.
-* **Repository Pattern:** Abstrakcja bazy danych (`DocumentRepositoryInterface`), ułatwiająca testowanie (mockowanie) oraz zmiany silnika bazodanowego.
-* **Audit Log:** Event-Driven Architecture gwarantuje automatyczny zapis każdego przejścia w cyklu życia dokumentu (Event `DocumentStateChanged`).
+### Dane dostępowe (Użytkownicy z seedera, hasło: `password`)
+- **Admin:** `admin@docflow.local` (Dostęp globalny)
+- **Manager:** `manager@docflow.local` (Zatwierdzanie dokumentów)
+- **Employee:** `employee@docflow.local` (Wgrywanie dokumentów)
 
-## Architektura UI (Frontend)
-* **Stack:** Vue 3 (Composition API), Tailwind CSS.
-* **Integracja:** Inertia.js (Nowoczesny Monolit) pozwala na korzystanie z Vue bez tworzenia oddzielnego API, renderując komponenty z poziomu kontrolerów Laravela.
-* **Wzorce:** Komponenty podzielone na warstwy (Layout, Pages). Dynamiczne renderowanie akcji (przyciski Workflow) jest ściśle sprzężone z wyliczonymi uprawnieniami (RBAC) przekazywanymi przez klasę `HandleInertiaRequests`.
+---
 
-## Asynchroniczność i API
-* **Kolejkowanie (Redis):** Integracja z Redis pozwala na tło obsługi zadań powiadomień. Przy zmianie stanu dokumentu, Job `SendDocumentStatusNotification` jest asynchronicznie przesyłany do workera.
-* **REST API:** Zewnętrzne systemy (np. OCR lub zewnętrzne ERP) mogą załączać nowe dokumenty przy użyciu endpointu `POST /api/documents` chronionego przez *Laravel Sanctum*. Architektura oparta o interfejsy gwarantuje, że kontroler API współdzieli repozytoria i serwisy uploaderów z aplikacją webową bez duplikacji logiki biznesowej.
+## 📊 BPMN Workflow & State Machine
+System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokumentu przechodzi przez rygorystycznie zdefiniowane ścieżki. Zmiana stanu z pominięciem reguł rzuca wyjątek `InvalidArgumentException`.
 
-**Uruchomienie Workera Kolejek (Lokalnie):**
+### Dostępne Stany i Przejścia:
+1. **Draft (Szkic)**
+    - *Początkowy stan po wgraniu dokumentu.*
+    - **Akcje:** `submit()` -> Przejście w **Pending**.
+2. **Pending (Oczekujący)**
+    - *Stan weryfikacji. Oczekuje na decyzję Managera.*
+    - **Akcje:**
+        - `approve()` -> Przejście w **Approved**.
+        - `reject()` -> Przejście w **Rejected**.
+3. **Approved (Zaakceptowany)** / **Rejected (Odrzucony)**
+    - *Stany końcowe. Brak dalszych dozwolonych akcji.*
+
+*(Każda transformacja automatycznie tworzy wpis w tabeli `document_audit_logs` dzięki Architekturze Event-Driven).*
+
+---
+
+## 🏗 Architektura i Wzorce (SOLID)
+- **SRP & DIP:** Walidacja ról w `RoleVerificationService`. Operacje dyskowe za interfejsem `FileUploaderInterface`.
+- **Repository Pattern:** Komunikacja z bazą danych abstrahowana za pomocą `DocumentRepositoryInterface`.
+- **RBAC:** Autorski, lekki system kontroli dostępu za pomocą Middleware i zoptymalizowanych zapytań (Eager Loading).
+- **Asynchroniczność:** Powiadomienia email (Joby) procesowane w tle dzięki Redis Queues.
+- **API First (częściowo):** Zewnętrzny endpoint `/api/documents` (chroniony Sanctum) używa tych samych serwisów domenowych co logika webowa.
+
+## 🧪 Testy i CI/CD
+Uruchamianie testów w kontenerze:
 ```bash
-docker-compose exec app php artisan queue:work
+docker-compose exec app php artisan test
 ```
+Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów za pomocą testów PHPUnit przy każdym Push/PR.
