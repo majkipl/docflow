@@ -6,6 +6,8 @@ use App\Models\Document;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DocumentPolicyTest extends TestCase
@@ -36,6 +38,50 @@ class DocumentPolicyTest extends TestCase
 
         $this->admin = User::factory()->create();
         $this->admin->roles()->attach($adminRole);
+    }
+
+    public function test_employee_can_create_document_with_valid_data(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->employeeA)
+            ->post(route('documents.store'), [
+                'title' => 'New Employment Contract',
+                'file' => UploadedFile::fake()->create('contract.pdf', 300, 'application/pdf'),
+            ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertDatabaseHas('documents', [
+            'user_id' => $this->employeeA->id,
+            'title' => 'New Employment Contract',
+            'state' => 'draft',
+        ]);
+    }
+
+    public function test_create_document_fails_validation_for_invalid_file_format(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->employeeA)
+            ->post(route('documents.store'), [
+                'title' => 'Executable File',
+                'file' => UploadedFile::fake()->create('script.exe', 300),
+            ]);
+
+        $response->assertSessionHasErrors(['file']);
+    }
+
+    public function test_user_without_create_role_cannot_store_document(): void
+    {
+        $unauthorizedUser = User::factory()->create();
+
+        $response = $this->actingAs($unauthorizedUser)
+            ->post(route('documents.store'), [
+                'title' => 'Unauthorized Document',
+                'file' => UploadedFile::fake()->create('test.pdf', 100, 'application/pdf'),
+            ]);
+
+        $response->assertStatus(403);
     }
 
     public function test_employee_cannot_view_another_employees_document(): void

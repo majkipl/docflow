@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDocumentRequest;
 use App\Models\Document;
 use App\Models\User;
 use App\Repositories\DocumentRepositoryInterface;
@@ -9,6 +10,7 @@ use App\Services\Auth\RoleVerificationService;
 use App\Services\Upload\FileUploaderInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -63,27 +65,23 @@ class DocumentController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param StoreDocumentRequest $request
      * @param FileUploaderInterface $uploader
      * @return RedirectResponse
      */
-    public function store(Request $request, FileUploaderInterface $uploader)
+    public function store(StoreDocumentRequest $request, FileUploaderInterface $uploader)
     {
-        Gate::authorize('create', Document::class);
+        /** @var UploadedFile $file */
+        $file = $request->file('file');
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'file' => 'required|file|mimes:pdf,jpg,png,docx|max:10240',
-        ]);
-
-        $path = $uploader->upload($request->file('file'), 'documents');
+        $path = $uploader->upload($file, 'documents');
 
         /** @var User $user */
         $user = $request->user();
 
         $this->repository->create([
             'user_id' => $user->id,
-            'title' => $request->title,
+            'title' => (string) $request->validated('title'),
             'file_path' => $path,
             'state' => 'draft',
         ]);
