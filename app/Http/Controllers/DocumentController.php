@@ -9,6 +9,7 @@ use App\Services\Auth\RoleVerificationService;
 use App\Services\Upload\FileUploaderInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,6 +32,8 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Document::class);
+
         /** @var User $user */
         $user = $request->user();
 
@@ -54,6 +57,8 @@ class DocumentController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create', Document::class);
+
         return Inertia::render('Documents/Create');
     }
 
@@ -64,6 +69,8 @@ class DocumentController extends Controller
      */
     public function store(Request $request, FileUploaderInterface $uploader)
     {
+        Gate::authorize('create', Document::class);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'file' => 'required|file|mimes:pdf,jpg,png,docx|max:10240',
@@ -75,7 +82,8 @@ class DocumentController extends Controller
         $user = $request->user();
 
         $this->repository->create([
-            'user_id' => $user->id, 'title' => $request->title,
+            'user_id' => $user->id,
+            'title' => $request->title,
             'file_path' => $path,
             'state' => 'draft',
         ]);
@@ -89,6 +97,8 @@ class DocumentController extends Controller
      */
     public function show(Document $document)
     {
+        Gate::authorize('view', $document);
+
         // Ładowanie relacji dla widoku szczegółów i osi czasu (Audit Log)
         $document->load(['user', 'auditLogs.user']);
 
@@ -105,6 +115,8 @@ class DocumentController extends Controller
      */
     public function submit(Document $document)
     {
+        Gate::authorize('submit', $document);
+
         $document->state->submit();
         return back()->with('message', 'Dokument wysłany do weryfikacji.');
     }
@@ -115,6 +127,8 @@ class DocumentController extends Controller
      */
     public function approve(Document $document)
     {
+        Gate::authorize('approve', $document);
+
         $document->state->approve();
         return back()->with('message', 'Dokument został zaakceptowany.');
     }
@@ -125,6 +139,8 @@ class DocumentController extends Controller
      */
     public function reject(Document $document)
     {
+        Gate::authorize('reject', $document);
+
         $document->state->reject();
         return back()->with('message', 'Dokument został odrzucony.');
     }

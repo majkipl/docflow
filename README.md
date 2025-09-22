@@ -2,12 +2,12 @@
 
 DocFlow to nowoczesna aplikacja webowa typu monolit (Laravel + Vue 3 + Inertia.js), służąca do elektronicznego obiegu dokumentów (EOD). System został zaprojektowany z myślą o skalowalności i architekturze zorientowanej na domeny (DDD), z rygorystycznym przestrzeganiem zasad SOLID.
 
-## Wymagania
+## ⚙️ Wymagania
 - Docker & Docker Compose
 - PHP 8.2+ (do lokalnego testowania, opcjonalnie)
 - Node.js (do modyfikacji frontendu poza kontenerem)
 
-## Szybki start (Środowisko Docker)
+## 🚀 Szybki start (Środowisko Docker)
 1. Klonowanie repozytorium: `git clone <url> && cd docflow`
 2. Przygotowanie konfiguracji: `cp .env.example .env` (upewnij się, że używasz połączeń z Dockera: `DB_HOST=db`, `REDIS_HOST=redis`).
 3. Uruchomienie kontenerów: `docker-compose up -d --build`
@@ -28,7 +28,7 @@ DocFlow to nowoczesna aplikacja webowa typu monolit (Laravel + Vue 3 + Inertia.j
 
 ---
 
-## BPMN Workflow & State Machine
+## 📊 BPMN Workflow & State Machine
 System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokumentu przechodzi przez rygorystycznie zdefiniowane ścieżki. Zmiana stanu z pominięciem reguł rzuca wyjątek `InvalidArgumentException`.
 
 ### Dostępne Stany i Przejścia:
@@ -47,16 +47,16 @@ System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokum
 
 ---
 
-## Architektura i Wzorce (SOLID)
+## 🏗️ Architektura i Wzorce (SOLID)
 - **SRP & DIP:** Walidacja ról w `RoleVerificationService`. Operacje dyskowe za interfejsem `FileUploaderInterface`.
 - **Repository Pattern:** Komunikacja z bazą danych abstrahowana za pomocą `DocumentRepositoryInterface`.
-- **RBAC:** Autorski, lekki system kontroli dostępu za pomocą Middleware i zoptymalizowanych zapytań (Eager Loading).
+- **RBAC & Bezpieczeństwo (Anti-IDOR):** Autoryzacja zasobowa oparta na `DocumentPolicy` oraz `CheckRole` Middleware. Pracownicy mają dostęp wyłącznie do własnych dokumentów, natomiast Managerowie i Administratorzy uzyskują wgląd do dokumentów wymagających akceptacji.
 - **Asynchroniczność:** Powiadomienia email (Joby) procesowane w tle dzięki Redis Queues.
 - **API First (Ingestion):** Zewnętrzny interfejs API (`/api/documents`) chroniony przez Laravel Sanctum, korzystający ze wspólnych serwisów domenowych i repozytorium.
 
 ---
 
-## REST API (Sanctum)
+## 🔌 REST API (Sanctum)
 
 Aplikacja udostępnia zabezpieczone punkty końcowe REST API (`auth:sanctum`):
 
@@ -67,7 +67,7 @@ Aplikacja udostępnia zabezpieczone punkty końcowe REST API (`auth:sanctum`):
 
 ---
 
-## Testy i Jakość Kodu
+## 🧪 Testy i Jakość Kodu
 
 Uruchamianie testów w kontenerze Docker:
 ```bash
@@ -79,4 +79,4 @@ Uruchamianie analizy statycznej PHPStan (Level 8):
 docker-compose exec app ./vendor/bin/phpstan analyse --level=8 --memory-limit=512M
 ```
 
-Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów i API za pomocą testów PHPUnit przy każdym Push/PR.
+Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów, reguł Policy oraz API za pomocą testów PHPUnit przy każdym Push/PR.

@@ -6,9 +6,15 @@ use App\Casts\StateCast;
 use App\Domain\States\DocumentState;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property int $id
+ * @property int $user_id
+ * @property string $title
+ * @property string $file_path
  * @property DocumentState $state
+ * @property User $user
  */
 class Document extends Model
 {
@@ -20,6 +26,14 @@ class Document extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany<DocumentAuditLog, $this>
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(DocumentAuditLog::class);
     }
 
     /**
