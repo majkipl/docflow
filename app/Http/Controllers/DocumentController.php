@@ -108,38 +108,41 @@ class DocumentController extends Controller
     // Akcje Maszyny Stanów
 
     /**
+     * @param Request $request
      * @param Document $document
      * @return RedirectResponse
      */
-    public function submit(Document $document)
+    public function submit(Request $request, Document $document)
     {
         Gate::authorize('submit', $document);
 
-        $document->state->submit();
+        $document->state->submit($request->user());
         return back()->with('message', 'Dokument wysłany do weryfikacji.');
     }
 
     /**
+     * @param Request $request
      * @param Document $document
      * @return RedirectResponse
      */
-    public function approve(Document $document)
+    public function approve(Request $request, Document $document)
     {
         Gate::authorize('approve', $document);
 
-        $document->state->approve();
+        $document->state->approve($request->user());
         return back()->with('message', 'Dokument został zaakceptowany.');
     }
 
     /**
+     * @param Request $request
      * @param Document $document
      * @return RedirectResponse
      */
-    public function reject(Document $document)
+    public function reject(Request $request, Document $document)
     {
         Gate::authorize('reject', $document);
 
-        $document->state->reject();
+        $document->state->reject($request->user());
         return back()->with('message', 'Dokument został odrzucony.');
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Domain\States;
 
+use App\Models\User;
+
 class PendingState extends DocumentState
 {
     /**
@@ -13,18 +15,20 @@ class PendingState extends DocumentState
     }
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function approve(): void
+    public function approve(?User $actor = null): void
     {
-        $this->transitionTo('approved');
+        $this->transitionTo('approved', $actor);
     }
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function reject(): void
+    public function reject(?User $actor = null): void
     {
-        $this->transitionTo('rejected');
+        $this->transitionTo('rejected', $actor);
     }
 }

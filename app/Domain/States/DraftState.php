@@ -2,6 +2,8 @@
 
 namespace App\Domain\States;
 
+use App\Models\User;
+
 class DraftState extends DocumentState
 {
     /**
@@ -13,10 +15,11 @@ class DraftState extends DocumentState
     }
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function submit(): void
+    public function submit(?User $actor = null): void
     {
-        $this->transitionTo('pending');
+        $this->transitionTo('pending', $actor);
     }
 }

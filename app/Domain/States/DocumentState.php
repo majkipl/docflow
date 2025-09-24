@@ -4,6 +4,7 @@ namespace App\Domain\States;
 
 use App\Events\DocumentStateChanged;
 use App\Models\Document;
+use App\Models\User;
 use InvalidArgumentException;
 
 abstract class DocumentState
@@ -23,34 +24,38 @@ abstract class DocumentState
     // Przejścia (BPMN Workflow) - domyślnie zablokowane
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function submit(): void
+    public function submit(?User $actor = null): void
     {
         throw new InvalidArgumentException("Nie można przesłać dokumentu ze statusu: {$this->getName()}");
     }
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function approve(): void
+    public function approve(?User $actor = null): void
     {
         throw new InvalidArgumentException("Nie można zaakceptować dokumentu ze statusu: {$this->getName()}");
     }
 
     /**
+     * @param User|null $actor
      * @return void
      */
-    public function reject(): void
+    public function reject(?User $actor = null): void
     {
         throw new InvalidArgumentException("Nie można odrzucić dokumentu ze statusu: {$this->getName()}");
     }
 
     /**
      * @param string $newState
+     * @param User|null $actor
      * @return void
      */
-    protected function transitionTo(string $newState): void
+    protected function transitionTo(string $newState, ?User $actor = null): void
     {
         /** @var DocumentState $state */
         $state = $this->document->state;
@@ -59,8 +64,7 @@ abstract class DocumentState
         $this->document->setAttribute('state', $newState);
         $this->document->save();
 
-        $userId = auth()->id();
-        $eventUserId = $userId !== null ? (int) $userId : null;
+        $eventUserId = $actor?->id;
 
         event(new DocumentStateChanged($this->document, $oldState, $newState, $eventUserId));
     }

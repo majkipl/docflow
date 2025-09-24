@@ -34,21 +34,22 @@ System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokum
 ### Dostępne Stany i Przejścia:
 1. **Draft (Szkic)**
     - *Początkowy stan po wgraniu dokumentu.*
-    - **Akcje:** `submit()` -> Przejście w **Pending**.
+    - **Akcje:** `submit(?User $actor = null)` -> Przejście w **Pending**.
 2. **Pending (Oczekujący)**
     - *Stan weryfikacji. Oczekuje na decyzję Managera.*
     - **Akcje:**
-        - `approve()` -> Przejście w **Approved**.
-        - `reject()` -> Przejście w **Rejected**.
+        - `approve(?User $actor = null)` -> Przejście w **Approved**.
+        - `reject(?User $actor = null)` -> Przejście w **Rejected**.
 3. **Approved (Zaakceptowany)** / **Rejected (Odrzucony)**
     - *Stany końcowe. Brak dalszych dozwolonych akcji.*
 
-*(Każda transformacja automatycznie tworzy wpis w tabeli `document_audit_logs` dzięki Architekturze Event-Driven).*
+*(Każda transformacja automatycznie tworzy wpis w tabeli `document_audit_logs` dzięki Architekturze Event-Driven. Logika domenowa jest całkowicie odseparowana od globalnej sesji HTTP i przyjmuje jawny kontekst aktora).*
 
 ---
 
 ## Architektura i Wzorce (SOLID)
 - **SRP & DIP:** Walidacja ról w `RoleVerificationService`. Enkapsulacja reguł walidacji wejściowej i autoryzacji w klasach Form Request (`StoreDocumentRequest`). Operacje dyskowe za interfejsem `FileUploaderInterface`.
+- **Domain Decoupling:** Warstwa domenowa (`DocumentState`) jest niezależna od protokołu HTTP i globalnych sesji – przyjmuje opcjonalną instancję aktora (`?User $actor`), co umożliwia uruchamianie tranzycji z poziomu CLI, Jobów czy Seederów.
 - **Repository Pattern:** Komunikacja z bazą danych abstrahowana za pomocą `DocumentRepositoryInterface`.
 - **RBAC & Bezpieczeństwo (Anti-IDOR):** Autoryzacja zasobowa oparta na `DocumentPolicy` oraz `CheckRole` Middleware. Pracownicy mają dostęp wyłącznie do własnych dokumentów, natomiast Managerowie i Administratorzy uzyskują wgląd do dokumentów wymagających akceptacji.
 - **Asynchroniczność:** Powiadomienia email (Joby) procesowane w tle dzięki Redis Queues.
