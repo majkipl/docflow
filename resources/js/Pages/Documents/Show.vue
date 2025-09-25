@@ -17,7 +17,7 @@ const action = (route) => form.post(route)
     <AuthenticatedLayout>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <!-- Szczegóły i Akcje (Commit 22 i 23) -->
+            <!-- Szczegóły i Akcje -->
             <div class="md:col-span-2 bg-white p-6 rounded-lg shadow">
                 <div class="flex justify-between items-start mb-4">
                     <div>
@@ -29,11 +29,18 @@ const action = (route) => form.post(route)
                     </span>
                 </div>
 
+                <div class="mt-4">
+                    <a :href="`/documents/${document.id}/download`"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        📥 Pobierz plik załącznika
+                    </a>
+                </div>
+
                 <div class="mt-8 pt-6 border-t border-gray-200 space-x-3">
                     <!-- Akcje Pracownika -->
                     <button v-if="isEmployee && document.state === 'draft'"
                             @click="action(`/documents/${document.id}/submit`)"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                         Wyślij do akceptacji (Zmień na Pending)
                     </button>
 
@@ -51,7 +58,7 @@ const action = (route) => form.post(route)
                 </div>
             </div>
 
-            <!-- Oś czasu - Audit Log (Commit 24) -->
+            <!-- Oś czasu - Audit Log -->
             <div class="bg-white p-6 rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4">Historia zmian (Audit Log)</h3>
                 <ol class="relative border-l border-gray-200 ml-3">

@@ -51,7 +51,7 @@ System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokum
 - **SRP & DIP:** Walidacja ról w `RoleVerificationService`. Enkapsulacja reguł walidacji wejściowej i autoryzacji w klasach Form Request (`StoreDocumentRequest`). Operacje dyskowe za interfejsem `FileUploaderInterface`.
 - **Domain Decoupling:** Warstwa domenowa (`DocumentState`) jest niezależna od protokołu HTTP i globalnych sesji – przyjmuje opcjonalną instancję aktora (`?User $actor`), co umożliwia uruchamianie tranzycji z poziomu CLI, Jobów czy Seederów.
 - **Repository Pattern:** Komunikacja z bazą danych abstrahowana za pomocą `DocumentRepositoryInterface`.
-- **RBAC & Bezpieczeństwo (Anti-IDOR):** Autoryzacja zasobowa oparta na `DocumentPolicy` oraz `CheckRole` Middleware. Pracownicy mają dostęp wyłącznie do własnych dokumentów, natomiast Managerowie i Administratorzy uzyskują wgląd do dokumentów wymagających akceptacji.
+- **RBAC & Bezpieczeństwo (Anti-IDOR):** Autoryzacja zasobowa oparta na `DocumentPolicy` oraz `CheckRole` Middleware. Pracownicy mają dostęp wyłącznie do własnych dokumentów oraz ich załączników (`/documents/{document}/download`), natomiast Managerowie i Administratorzy uzyskują wgląd do dokumentów wymagających akceptacji.
 - **Asynchroniczność:** Powiadomienia email (Joby) procesowane w tle dzięki Redis Queues.
 - **API First (Ingestion):** Zewnętrzny interfejs API (`/api/documents`) chroniony przez Laravel Sanctum, korzystający ze wspólnych serwisów domenowych i repozytorium.
 

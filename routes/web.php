@@ -15,6 +15,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DocumentController::class, 'index'])->name('dashboard');
 
     Route::resource('documents', DocumentController::class)->only(['create', 'store', 'show']);
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
 
     // Akcje Workflow z wpiętym middlewarem RBAC (RBAC z Fazy 2)
     Route::post('/documents/{document}/submit', [DocumentController::class, 'submit'])->name('documents.submit');

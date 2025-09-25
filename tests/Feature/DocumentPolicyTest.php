@@ -214,4 +214,58 @@ class DocumentPolicyTest extends TestCase
             'state' => 'rejected',
         ]);
     }
+
+    public function test_employee_can_download_own_document_file(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('documents/file.pdf', 'file content');
+
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Downloadable Doc',
+            'file_path' => 'documents/file.pdf',
+            'state' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->employeeA)
+            ->get(route('documents.download', $document));
+
+        $response->assertStatus(200)
+            ->assertDownload();
+    }
+
+    public function test_employee_cannot_download_another_employees_document_file(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('documents/file.pdf', 'file content');
+
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Private Doc',
+            'file_path' => 'documents/file.pdf',
+            'state' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->employeeB)
+            ->get(route('documents.download', $document));
+
+        $response->assertStatus(403);
+    }
+
+    public function test_download_returns_404_if_file_missing_on_disk(): void
+    {
+        Storage::fake('local');
+
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Missing Doc',
+            'file_path' => 'documents/nonexistent.pdf',
+            'state' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->employeeA)
+            ->get(route('documents.download', $document));
+
+        $response->assertStatus(404);
+    }
 }

@@ -12,8 +12,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
@@ -103,6 +105,21 @@ class DocumentController extends Controller
         return Inertia::render('Documents/Show', [
             'document' => $document
         ]);
+    }
+
+    /**
+     * @param Document $document
+     * @return StreamedResponse
+     */
+    public function download(Document $document): StreamedResponse
+    {
+        Gate::authorize('view', $document);
+
+        if (!Storage::disk('local')->exists($document->file_path)) {
+            abort(404, 'Plik załącznika nie został odnaleziony na dysku.');
+        }
+
+        return Storage::disk('local')->download($document->file_path);
     }
 
     // Akcje Maszyny Stanów
