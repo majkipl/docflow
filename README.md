@@ -52,7 +52,7 @@ System oparty jest na klasycznym wzorcu projektowym **State**. Cykl życia dokum
 - **Domain Decoupling:** Warstwa domenowa (`DocumentState`) jest niezależna od protokołu HTTP i globalnych sesji – przyjmuje opcjonalną instancję aktora (`?User $actor`), co umożliwia uruchamianie tranzycji z poziomu CLI, Jobów czy Seederów.
 - **Repository Pattern:** Komunikacja z bazą danych abstrahowana za pomocą `DocumentRepositoryInterface`.
 - **RBAC & Bezpieczeństwo (Anti-IDOR):** Autoryzacja zasobowa oparta na `DocumentPolicy` oraz `CheckRole` Middleware. Pracownicy mają dostęp wyłącznie do własnych dokumentów oraz ich załączników (`/documents/{document}/download`), natomiast Managerowie i Administratorzy uzyskują wgląd do dokumentów wymagających akceptacji.
-- **Asynchroniczność:** Powiadomienia email (Joby) procesowane w tle dzięki Redis Queues.
+- **Asynchroniczność:** Powiadomienia email (Joby `SendDocumentStatusNotification`) procesowane w tle dzięki Redis Queues oraz rejestrowanie historii zmian w `DocumentAuditLog`.
 - **API First (Ingestion):** Zewnętrzny interfejs API (`/api/documents`) chroniony przez Laravel Sanctum, korzystający ze wspólnych serwisów domenowych i repozytorium.
 
 ---
@@ -80,4 +80,4 @@ Uruchamianie analizy statycznej PHPStan (Level 8):
 docker-compose exec app ./vendor/bin/phpstan analyse --level=8 --memory-limit=512M
 ```
 
-Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów, reguł Policy oraz API za pomocą testów PHPUnit przy każdym Push/PR.
+Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów, reguł Policy, asynchronicznych Jobów/Mailingów, logów audytowych oraz API za pomocą testów PHPUnit przy każdym Push/PR.
