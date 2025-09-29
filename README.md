@@ -19,6 +19,8 @@
 * manager@docflow.local
 * employee@docflow.local
 
-## Architektura (do tej pory)
+## Architektura
 * **RBAC:** Skastomizowany moduł ról wykorzystujący `RoleVerificationService` (zgodne z SRP i DIP).
-* **Frontend:** Vue 3, Tailwind CSS, Inertia.js.
+* **BPMN & State Machine:** Czysta implementacja wzorca projektowego *State*. Każdy status dokumentu (`draft`, `pending`, `approved`, `rejected`) to osobna klasa z hermetyzowanymi regułami przejść. Zintegrowane z Eloquent przy użyciu mechanizmu *Custom Casts*.
+* **Repository Pattern:** Abstrakcja bazy danych (`DocumentRepositoryInterface`), ułatwiająca testowanie (mockowanie) oraz zmiany silnika bazodanowego.
+* **Audit Log:** Event-Driven Architecture gwarantuje automatyczny zapis każdego przejścia w cyklu życia dokumentu (Event `DocumentStateChanged`).
