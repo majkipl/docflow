@@ -2,6 +2,7 @@
 
 namespace App\Domain\States;
 
+use App\Domain\Enums\DocumentStatus;
 use App\Models\User;
 
 class DraftState extends DocumentState
@@ -11,7 +12,7 @@ class DraftState extends DocumentState
      */
     public function getName(): string
     {
-        return 'draft';
+        return DocumentStatus::DRAFT->value;
     }
 
     /**
@@ -20,6 +21,6 @@ class DraftState extends DocumentState
      */
     public function submit(?User $actor = null): void
     {
-        $this->transitionTo('pending', $actor);
+        $this->transitionTo(DocumentStatus::PENDING, $actor);
     }
 }

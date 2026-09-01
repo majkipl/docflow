@@ -2,14 +2,15 @@
 
 namespace App\Domain\States;
 
+use App\Domain\Enums\DocumentStatus;
+
 class ApprovedState extends DocumentState
 {
-
     /**
      * @return string
      */
     public function getName(): string
     {
-        return 'approved';
+        return DocumentStatus::APPROVED->value;
     }
 }

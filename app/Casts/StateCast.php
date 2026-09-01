@@ -2,6 +2,7 @@
 
 namespace App\Casts;
 
+use App\Domain\Enums\DocumentStatus;
 use App\Domain\States\ApprovedState;
 use App\Domain\States\DocumentState;
 use App\Domain\States\DraftState;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
 /**
- * @implements CastsAttributes<DocumentState, DocumentState|string>
+ * @implements CastsAttributes<DocumentState, DocumentState|DocumentStatus|string>
  */
 class StateCast implements CastsAttributes
 {
@@ -29,12 +30,14 @@ class StateCast implements CastsAttributes
             throw new InvalidArgumentException('StateCast can only be used with the Document model.');
         }
 
-        return match ($value) {
-            'draft' => new DraftState($model),
-            'pending' => new PendingState($model),
-            'approved' => new ApprovedState($model),
-            'rejected' => new RejectedState($model),
-            default => throw new InvalidArgumentException("Nieznany status: $value"),
+        $status = is_string($value) ? DocumentStatus::tryFrom($value) : null;
+
+        return match ($status) {
+            DocumentStatus::DRAFT => new DraftState($model),
+            DocumentStatus::PENDING => new PendingState($model),
+            DocumentStatus::APPROVED => new ApprovedState($model),
+            DocumentStatus::REJECTED => new RejectedState($model),
+            default => throw new InvalidArgumentException("Nieznany status: " . (is_scalar($value) ? (string) $value : gettype($value))),
         };
     }
 
@@ -45,16 +48,22 @@ class StateCast implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string
     {
-        // Jeśli przypisujemy gotowy obiekt stanu
         if ($value instanceof DocumentState) {
             return $value->getName();
         }
 
-        // Jeśli przypisujemy stan jako zwykły tekst, upewniamy się, że to faktycznie string
-        if (!is_string($value)) {
-            throw new InvalidArgumentException('State value must be a string or instance of DocumentState.');
+        if ($value instanceof DocumentStatus) {
+            return $value->value;
         }
 
-        return $value;
+        if (is_string($value)) {
+            $status = DocumentStatus::tryFrom($value);
+            if ($status !== null) {
+                return $status->value;
+            }
+            throw new InvalidArgumentException("Nieznany status: $value");
+        }
+
+        throw new InvalidArgumentException('State value must be a string, DocumentStatus or instance of DocumentState.');
     }
 }

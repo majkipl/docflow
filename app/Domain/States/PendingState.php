@@ -2,6 +2,7 @@
 
 namespace App\Domain\States;
 
+use App\Domain\Enums\DocumentStatus;
 use App\Models\User;
 
 class PendingState extends DocumentState
@@ -11,7 +12,7 @@ class PendingState extends DocumentState
      */
     public function getName(): string
     {
-        return 'pending';
+        return DocumentStatus::PENDING->value;
     }
 
     /**
@@ -20,7 +21,7 @@ class PendingState extends DocumentState
      */
     public function approve(?User $actor = null): void
     {
-        $this->transitionTo('approved', $actor);
+        $this->transitionTo(DocumentStatus::APPROVED, $actor);
     }
 
     /**
@@ -29,6 +30,6 @@ class PendingState extends DocumentState
      */
     public function reject(?User $actor = null): void
     {
-        $this->transitionTo('rejected', $actor);
+        $this->transitionTo(DocumentStatus::REJECTED, $actor);
     }
 }
