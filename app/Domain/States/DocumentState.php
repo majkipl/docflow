@@ -6,6 +6,7 @@ use App\Domain\Enums\DocumentStatus;
 use App\Events\DocumentStateChanged;
 use App\Models\Document;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 abstract class DocumentState
@@ -58,17 +59,19 @@ abstract class DocumentState
      */
     protected function transitionTo(DocumentStatus|string $newState, ?User $actor = null): void
     {
-        /** @var DocumentState $state */
-        $state = $this->document->state;
-        $oldState = $state->getName();
+        DB::transaction(function () use ($newState, $actor) {
+            /** @var DocumentState $state */
+            $state = $this->document->state;
+            $oldState = $state->getName();
 
-        $newStateValue = $newState instanceof DocumentStatus ? $newState->value : $newState;
+            $newStateValue = $newState instanceof DocumentStatus ? $newState->value : $newState;
 
-        $this->document->setAttribute('state', $newStateValue);
-        $this->document->save();
+            $this->document->setAttribute('state', $newStateValue);
+            $this->document->save();
 
-        $eventUserId = $actor?->id;
+            $eventUserId = $actor?->id;
 
-        event(new DocumentStateChanged($this->document, $oldState, $newStateValue, $eventUserId));
+            event(new DocumentStateChanged($this->document, $oldState, $newStateValue, $eventUserId));
+        });
     }
 }

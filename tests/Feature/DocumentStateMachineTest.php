@@ -8,6 +8,7 @@ use App\Domain\States\RejectedState;
 use App\Events\DocumentStateChanged;
 use App\Models\Document;
 use App\Models\User;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
@@ -91,5 +92,22 @@ class DocumentStateMachineTest extends TestCase
         $this->document->refresh();
         $this->assertInstanceOf(RejectedState::class, $this->document->state);
         $this->assertEquals('rejected', $this->document->state->getName());
+    }
+
+    public function test_state_transition_is_atomic_and_rolls_back_on_error(): void
+    {
+        Event::listen(DocumentStateChanged::class, function () {
+            throw new Exception('Simulated listener failure');
+        });
+
+        try {
+            $this->document->state->submit($this->user);
+            $this->fail('Exception was expected');
+        } catch (Exception $e) {
+            $this->assertEquals('Simulated listener failure', $e->getMessage());
+        }
+
+        $this->document->refresh();
+        $this->assertEquals('draft', $this->document->state->getName());
     }
 }
