@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DocumentPolicyTest extends TestCase
@@ -130,6 +131,39 @@ class DocumentPolicyTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('documents.show', $document))
             ->assertStatus(200);
+    }
+
+    public function test_employee_sees_employee_dashboard_view(): void
+    {
+        $response = $this->actingAs($this->employeeA)
+            ->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('viewType', 'employee')
+        );
+    }
+
+    public function test_manager_and_admin_see_manager_dashboard_view(): void
+    {
+        $responseManager = $this->actingAs($this->manager)
+            ->get(route('dashboard'));
+
+        $responseManager->assertStatus(200);
+        $responseManager->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('viewType', 'manager')
+        );
+
+        $responseAdmin = $this->actingAs($this->admin)
+            ->get(route('dashboard'));
+
+        $responseAdmin->assertStatus(200);
+        $responseAdmin->assertInertia(fn(Assert $page) => $page
+            ->component('Dashboard')
+            ->where('viewType', 'manager')
+        );
     }
 
     public function test_employee_cannot_submit_another_employees_document(): void

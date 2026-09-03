@@ -41,8 +41,8 @@ class DocumentController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        // Polimorficzny Dashboard na podstawie roli
-        if ($this->roleService->hasRole($user, 'manager')) {
+        // Polimorficzny Dashboard na podstawie roli: Manager i Admin widzą kolejkę do akceptacji
+        if ($this->roleService->hasAnyRole($user, ['manager', 'admin'])) {
             $documents = $this->repository->getPendingForManager();
             $viewType = 'manager';
         } else {
@@ -52,7 +52,7 @@ class DocumentController extends Controller
 
         return Inertia::render('Dashboard', [
             'documents' => $documents,
-            'viewType' => $viewType
+            'viewType' => $viewType,
         ]);
     }
 
