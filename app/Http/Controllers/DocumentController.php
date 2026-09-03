@@ -115,11 +115,13 @@ class DocumentController extends Controller
     {
         Gate::authorize('view', $document);
 
-        if (!Storage::disk('local')->exists($document->file_path)) {
+        $disk = (string) config('filesystems.default', 'local');
+
+        if (!Storage::disk($disk)->exists($document->file_path)) {
             abort(404, 'Plik załącznika nie został odnaleziony na dysku.');
         }
 
-        return Storage::disk('local')->download($document->file_path);
+        return Storage::disk($disk)->download($document->file_path);
     }
 
     // Akcje Maszyny Stanów
