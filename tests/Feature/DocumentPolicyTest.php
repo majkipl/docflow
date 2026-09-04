@@ -59,6 +59,24 @@ class DocumentPolicyTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_document_with_valid_data(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('documents.store'), [
+                'title' => 'Admin Contract',
+                'file' => UploadedFile::fake()->create('contract.pdf', 300, 'application/pdf'),
+            ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertDatabaseHas('documents', [
+            'user_id' => $this->admin->id,
+            'title' => 'Admin Contract',
+            'state' => 'draft',
+        ]);
+    }
+
     public function test_create_document_fails_validation_for_invalid_file_format(): void
     {
         Storage::fake('local');
@@ -81,6 +99,16 @@ class DocumentPolicyTest extends TestCase
                 'title' => 'Unauthorized Document',
                 'file' => UploadedFile::fake()->create('test.pdf', 100, 'application/pdf'),
             ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_without_any_role_cannot_access_dashboard(): void
+    {
+        $unauthorizedUser = User::factory()->create();
+
+        $response = $this->actingAs($unauthorizedUser)
+            ->get(route('dashboard'));
 
         $response->assertStatus(403);
     }
@@ -200,6 +228,25 @@ class DocumentPolicyTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_submit_any_draft_document(): void
+    {
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Employee Draft Document',
+            'file_path' => 'docs/a.pdf',
+            'state' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('documents.submit', $document));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'state' => 'pending',
+        ]);
+    }
+
     public function test_cannot_submit_document_that_is_not_draft(): void
     {
         $document = Document::create([
@@ -249,6 +296,44 @@ class DocumentPolicyTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_approve_pending_document(): void
+    {
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Pending Document For Admin Approval',
+            'file_path' => 'docs/p.pdf',
+            'state' => 'pending',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('documents.approve', $document));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'state' => 'approved',
+        ]);
+    }
+
+    public function test_admin_can_reject_pending_document(): void
+    {
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Pending Document For Admin Rejection',
+            'file_path' => 'docs/p.pdf',
+            'state' => 'pending',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('documents.reject', $document));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'state' => 'rejected',
+        ]);
+    }
+
     public function test_employee_can_download_own_document_file(): void
     {
         Storage::fake('local');
@@ -262,6 +347,25 @@ class DocumentPolicyTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->employeeA)
+            ->get(route('documents.download', $document));
+
+        $response->assertStatus(200)
+            ->assertDownload();
+    }
+
+    public function test_admin_can_download_any_document_file(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('documents/file.pdf', 'file content');
+
+        $document = Document::create([
+            'user_id' => $this->employeeA->id,
+            'title' => 'Employee Doc',
+            'file_path' => 'documents/file.pdf',
+            'state' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin)
             ->get(route('documents.download', $document));
 
         $response->assertStatus(200)
