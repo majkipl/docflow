@@ -3,25 +3,42 @@
 DocFlow to nowoczesna aplikacja webowa typu monolit (Laravel + Vue 3 + Inertia.js), służąca do elektronicznego obiegu dokumentów (EOD). System został zaprojektowany z myślą o skalowalności i architekturze zorientowanej na domeny (DDD), z rygorystycznym przestrzeganiem zasad SOLID.
 
 ## Wymagania
-- Docker & Docker Compose
+- Docker & Docker Compose v2 (`docker compose`)
 - PHP 8.2+ (do lokalnego testowania, opcjonalnie)
-- Node.js (do modyfikacji frontendu poza kontenerem)
+- Node.js (do modyfikacji frontendu poza kontenerem, opcjonalnie)
 
 ## Szybki start (Środowisko Docker)
 1. Klonowanie repozytorium: `git clone <url> && cd docflow`
 2. Przygotowanie konfiguracji: `cp .env.example .env` (upewnij się, że używasz połączeń z Dockera: `DB_HOST=db`, `REDIS_HOST=redis`).
-3. Uruchomienie kontenerów: `docker-compose up -d --build`
-4. Inicjalizacja aplikacji (wewnątrz kontenera):
+3. Uruchomienie kontenerów: `docker compose up -d --build`
+4. Inicjalizacja aplikacji (wewnątrz kontenera lub bezpośrednio przez compose):
    ```bash
-   docker-compose exec app bash
-   composer install
-   php artisan key:generate
-   php artisan migrate --seed
-   npm install && npm run build
+   docker compose exec app composer install
+   docker compose exec app php artisan key:generate
+   docker compose exec app php artisan migrate
+   docker compose exec app php artisan db:seed
+   docker compose exec app npm install
+   docker compose exec app npm run build
+   docker compose exec app chown -R www-data:www-data storage bootstrap/cache
+   docker compose exec app chmod -R 777 storage bootstrap/cache
+   ```
+   *Lub wejdź do powłoki kontenera:*
+   ```bash
+   docker compose exec app bash
    ```
 5. Aplikacja jest dostępna pod adresem: `http://localhost:8000`
 
 ### Dane dostępowe (Użytkownicy z seedera, hasło: `password`)
+
+Aby zasilić bazę kontami demonstracyjnymi oraz rolami (lub je uzupełnić):
+```bash
+docker compose exec app php artisan db:seed
+```
+> [!TIP]
+> Jeśli chcesz całkowicie wyczyścić i ponownie zainicjalizować bazę danych od zera wraz z seedami, użyj:
+> `docker compose exec app php artisan migrate:fresh --seed`
+
+Dostępne konta testowe:
 - **Admin:** `admin@docflow.local` (Dostęp globalny)
 - **Manager:** `manager@docflow.local` (Zatwierdzanie dokumentów)
 - **Employee:** `employee@docflow.local` (Wgrywanie dokumentów)
@@ -72,12 +89,12 @@ Aplikacja udostępnia zabezpieczone punkty końcowe REST API (`auth:sanctum`):
 
 Uruchamianie testów w kontenerze Docker:
 ```bash
-docker-compose exec app php artisan test
+docker compose exec app php artisan test
 ```
 
 Uruchamianie analizy statycznej PHPStan (Level 8):
 ```bash
-docker-compose exec app ./vendor/bin/phpstan analyse --level=8 --memory-limit=512M
+docker compose exec app ./vendor/bin/phpstan analyse --level=8 --memory-limit=512M
 ```
 
 Projekt posiada zintegrowany potok GitHub Actions analizujący kod za pomocą **PHPStan (Level 8)** oraz weryfikujący poprawność maszyny stanów, reguł Policy, asynchronicznych Jobów/Mailingów, logów audytowych oraz API za pomocą testów PHPUnit przy każdym Push/PR.
